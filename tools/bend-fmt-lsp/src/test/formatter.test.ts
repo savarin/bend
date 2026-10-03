@@ -61,6 +61,13 @@ test("preserves adjacency in natural-number successor patterns", () => {
   assert.equal(formatBend("value=1n + p"), "value = 1n + p");
 });
 
+test("keeps template/rewrite prefix glued before ( and [", () => {
+  assert.equal(formatBend("def main():\n  f(~(x => x), xs)"), "def main():\n  f(~(x => x), xs)");
+  assert.equal(formatBend("def main():\n  f(%(x => x) : T)"), "def main():\n  f(%(x => x) : T)");
+  assert.equal(formatBend("def main():\n  f(~[1,2])"), "def main():\n  f(~[1, 2])");
+  assert.equal(formatBend("def main():\n  f(~ (x => x), xs)"), "def main():\n  f(~(x => x), xs)");
+});
+
 test("keeps adjacent parallel binders and template quantities", () => {
   assert.equal(formatBend("+a +b=x y"), "+a +b = x y");
   assert.equal(formatBend("f(~ & 2,~T,[1,2])"), "f(~&2, ~T, [1, 2])");
