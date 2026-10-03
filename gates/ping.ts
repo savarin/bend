@@ -309,6 +309,18 @@ try {
     const got = await bend_closed(args);
     check("a closed reader keeps success: " + args.join(" "), got.code === 0);
   }
+  // a trailing `# comment` on an import is allowed by the real parser (and
+  // GUIDE.md) and must be reached by --checkup's regex, not skipped (d7af6bf9).
+  const commented_good = path.join(TMP, "commented_checkup.bend");
+  const commented_bad  = path.join(TMP, "commented_bad_checkup.bend");
+  fs.writeFileSync(commented_good, "import ./sum.bend as Good  # trailing comment\n");
+  fs.writeFileSync(commented_bad,  "import ./bad.bend  as Bad  # broken behind a comment\n");
+  const cg = await bend([commented_good, "--checkup"], { BEND_NO_TELEMETRY: "1" });
+  check("a trailing-comment import is reached by --checkup (header printed)",
+    cg.code === 0 && plain(cg.out).includes("--- ./sum.bend ---"));
+  const cb = await bend_closed([commented_bad, "--checkup"]);
+  check("a closed reader keeps failure: " + [commented_bad, "--checkup"].join(" "),
+    cb.code === 1);
   const two  = "import Base\ndef two() -> Nat:\n  2n\n";
   const use  = (at: string) => "import Base\nimport ./" + at
     + " as T\ndef main() -> Nat:\n  T.two\n";
